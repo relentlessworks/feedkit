@@ -12,6 +12,8 @@ jobs:
       actions: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Read version
         id: version
         run: echo "version=v$(cat VERSION)" >> $GITHUB_OUTPUT
