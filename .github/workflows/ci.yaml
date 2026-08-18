@@ -23,19 +23,25 @@ jobs:
       - name: Test
         run: go test ./...
       - name: Build
-        run: CGO_ENABLED=0 go build -trimpath ./cmd/feedkit
+        run: CGO_ENABLED=0 go build -trimpath -o /dev/null ./cmd/feedkit
 
   cross-compile:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     strategy:
+      fail-fast: false
       matrix:
-        target:
-          - linux/amd64
-          - linux/arm64
-          - darwin/amd64
-          - darwin/arm64
-          - windows/amd64
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -43,10 +49,9 @@ jobs:
           go-version-file: go.mod
       - name: Cross-compile
         env:
-          GOOS: ${{ matrix.target }}
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
         run: |
-          IFS='/' read -r os arch <<< "${{ matrix.target }}"
-          export GOARCH=$arch
           ext=""
-          [ "$os" = "windows" ] && ext=".exe"
-          CGO_ENABLED=0 go build -trimpath -o feedkit-${os}-${arch}${ext} ./cmd/feedkit
+          [ "$GOOS" = "windows" ] && ext=".exe"
+          CGO_ENABLED=0 go build -trimpath -o feedkit-${GOOS}-${GOARCH}${ext} ./cmd/feedkit

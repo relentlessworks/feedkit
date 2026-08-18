@@ -10,13 +10,19 @@ jobs:
   release:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        target:
-          - linux/amd64
-          - linux/arm64
-          - darwin/amd64
-          - darwin/arm64
-          - windows/amd64
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -24,17 +30,16 @@ jobs:
           go-version-file: go.mod
       - name: Build
         env:
-          GOOS: ${{ matrix.target }}
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
         run: |
-          IFS='/' read -r os arch <<< "${{ matrix.target }}"
-          export GOARCH=$arch
           ext=""
-          [ "$os" = "windows" ] && ext=".exe"
-          CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o feedkit-${os}-${arch}${ext} ./cmd/feedkit
-          tar -czf feedkit-${os}-${arch}.tar.gz feedkit-${os}-${arch}${ext}
+          [ "$GOOS" = "windows" ] && ext=".exe"
+          CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o feedkit-${GOOS}-${GOARCH}${ext} ./cmd/feedkit
+          tar -czf feedkit-${GOOS}-${GOARCH}.tar.gz feedkit-${GOOS}-${GOARCH}${ext}
       - uses: actions/upload-artifact@v4
         with:
-          name: feedkit-${{ matrix.target }}
+          name: feedkit-${{ matrix.goos }}-${{ matrix.goarch }}
           path: feedkit-*.tar.gz
 
   publish:
@@ -44,7 +49,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifacts@v4
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
       - name: Generate checksums
