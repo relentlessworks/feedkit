@@ -1,6 +1,6 @@
 # Binaries
-feedkit
-feedkit-*
+/feedkit
+/feedkit-*
 *.exe
 
 # Data files
