@@ -34,8 +34,8 @@ jobs:
           mkdir -p dist
           ext=""
           [ "$GOOS" = "windows" ] && ext=".exe"
-          CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o dist/feedkit ./cmd/feedkit
-          cd dist && tar -czf feedkit-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz feedkit${ext}
+          CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o "dist/feedkit${ext}" ./cmd/feedkit
+          cd dist && tar -czf "feedkit-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz" "feedkit${ext}"
       - uses: actions/upload-artifact@v4
         with:
           name: feedkit-${{ matrix.goos }}-${{ matrix.goarch }}
